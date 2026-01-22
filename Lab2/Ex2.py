@@ -1,5 +1,5 @@
 # Ask the user to enter their birth year. Calculate their 
-# age based the the current year (2026) and print it out.
+# age based on the current year (2026) and print it out.
 # name: Dante Saito
 # date: Jan 20. 2026
 
