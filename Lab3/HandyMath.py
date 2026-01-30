@@ -21,3 +21,12 @@ def exponent(base, exp, precision):
     result = base ** exp
     rounded_result = round(result, precision)
     return rounded_result
+
+def maximum(num1, num2):
+    #return the maximum of two numbers
+    return num1 if num1 > num2 else num2
+
+def minimum(num1, num2):
+    #return the minimum of two numbers
+    return num1 if num1 < num2 else num2
+
