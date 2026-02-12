@@ -1,0 +1,17 @@
+trips = [
+    {'duration': 1.1, 'fare': 5.5},
+    {'duration': 0.5, 'fare': 3.0},
+    {'duration': 2.5, 'fare': 10.0},
+    {'duration': 2.6, 'fare': 8.0}
+]
+
+trip_duration = [trip['duration'] for trip in trips]
+trip_Fare = [trip['fare'] for trip in trips]
+
+trip = dict(zip(trip_duration, trip_Fare))
+print(trip)
+
+trip_num = input("what trip do you want to see [1-4]? ")
+trip_num = int(trip_num) - 1
+print(f"Duration: {list(trip.keys())[trip_num]} miles")
+print(f"Fare: ${list(trip.values())[trip_num]:.2f}")
