@@ -24,7 +24,7 @@ def run_quiz():
                 high_score = 0
 
 
-    print("WELCOME TO THE QUIZ")
+    print("WELCOME TO THE GREATEST QUIZ")
     print("HOW TO ANSWER:")
     print("- Type the letter of your choice (ex: 'a').")
     print("- For multiple answers, separate letters with spaces (ex: 'a b c').")
