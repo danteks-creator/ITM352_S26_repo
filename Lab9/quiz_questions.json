@@ -1,0 +1,70 @@
+[
+  {
+    "question": "Which numbers are a multiple of 1?",
+    "options": {
+      "a": "2",
+      "b": "4",
+      "c": "5",
+      "d": "9"
+    },
+    "correct_answers": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ]
+  },
+  {
+    "question": "Who is the viral social media influencer and streamer known for laughing at someone's mom being homeless?",
+    "options": {
+      "a": "The Rizzler",
+      "b": "Kai Cenat",
+      "c": "ISHOWSPEED",
+      "d": "Clavicular"
+    },
+    "correct_answers": [
+      "c"
+    ]
+  },
+  {
+    "question": "In the hit song 'We Bring the BOOM', what location do the singers A.J. and Big Justice say they are bringing the boom from?",
+    "options": {
+      "a": "Tacoma",
+      "b": "Dothan",
+      "c": "Los Angeles",
+      "d": "Boca Raton"
+    },
+    "correct_answers": [
+      "d"
+    ]
+  },
+  {
+    "question": "Does the honeybee defy all laws of aviation and logic by being able to fly?",
+    "options": {
+      "a": "I don't know",
+      "b": "Yes",
+      "c": "This is a trick question, the honeybee does not defy the laws of aviation and logic",
+      "d": "I googled it and the answer is no"
+    },
+    "correct_answers": [
+      "c",
+      "d"
+    ],
+    "match_type": "any"
+  },
+  {
+    "question": "Why does the author of this quiz hate birds?",
+    "options": {
+      "a": "One time in High School, a bird pooped on his face while he was eating lunch",
+      "b": "One time during recess, a bird pooped on the back of his shirt and he was made fun of",
+      "c": "He is jealous of the bird's ability to fly",
+      "d": "A flock of Myna Birds always wakes him up with their obnoxious calls"
+    },
+    "correct_answers": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ]
+  }
+]

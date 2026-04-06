@@ -1,0 +1,27 @@
+# Create a dataframe from indiviudal lists
+# Do some signle statistics on the data.
+from tkinter.font import names
+
+import pandas as pd
+
+# lists of individuals' ages
+ages = [25, 30, 22, 35, 28, 40, 50, 18, 60, 45]
+
+#Lists of Individuals' names and genders
+names = ["Joe", "Jaden", "Max", "Sidney", "Evgeni", "Taylor", "Pia", "Luis", "Blanca", "Cyndi"]
+gender = ["M", "M", "M", "F", "M", "F", "F", "M", "F", "F"]
+
+# Create a dictionary from the lists of ages and genders
+dict = zip(ages, gender)
+print(list(dict))
+
+# Create a dataframe from the dictionary
+df = pd.DataFrame(dict, index=names, columns=["Age", "Gender"])
+print(df)
+
+summary = df.describe()
+print(summary)
+
+# Calculate average age by gender
+average_age_by_gender = df.groupby("Gender")["Age"].mean()
+print("\nAverage age by gender: \n", average_age_by_gender)
