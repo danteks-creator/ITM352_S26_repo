@@ -3,9 +3,11 @@ import time
 import sys
 
 # Note: I used AI to " get my code and make it more defensive, maintainable, and user-friendly."
+# Note: When using the alternate data set function, use this link to access the alternate dataset: 
+# https://drive.google.com/file/d/1bYlYj2isiMAyP4gUcgF8hhfKMMFEOgYg/view?usp=sharing
 # I also asked AI "implement a summary of data, and create an alternate dataset"
 # I didn't really know what to do with the alternate dataset which is why I just asked AI to make it
-# For maintainability, his script uses a modular design. To add new analytics, 
+# For maintainability, this script uses a modular design. To add new analytics, 
 # you only need to add a tuple to the 'options' list in get_filtered_menu().
 
 def load_sales_data(drive_url):
@@ -102,7 +104,7 @@ def task_show_rows(df):
     if choice == "all": 
         print(df)
     elif choice.isdigit(): 
-        # DEFENSIVE: Ensure the integer is valid for the current dataframe length.
+        # Defensive programming: Ensure the integer is valid for the current dataframe length.
         n = int(choice)
         print(df.head(n) if n <= total else f"Error: Only {total} rows available.")
 
@@ -139,22 +141,64 @@ def task_unique_employees_by_region(df):
     print(pivot)
 
 
-def task_custom_pivot_placeholder(df):
-    print("\n[R4 Custom Generator Initialized...]")
+def task_custom_pivot_generator(df):
+    
+    # Custom pivot table logic.
+    # This allows the user to build their own analysis by selecting specific fields.
+    # I asked AI to make this interactive and add validation for user choices.
+
+    print("\n" + "="*30)
+    print("   CUSTOM PIVOT GENERATOR")
+    print("="*30)
+    
+    # USER INTERFACE: Provide a list of available fields for grouping data.
+    row_options = ['sales_region', 'product_category', 'employee_name', 'customer_state', 'customer_type']
+    val_options = ['unit_price', 'quantity']
+    
+    print("\nSelect a field to group by (Rows):")
+    for i, opt in enumerate(row_options, 1):
+        print(f"{i}. {opt}")
+    
+    row_choice = input("Enter choice (1-5): ").strip()
+    
+    print("\nSelect a numeric value to analyze:")
+    for i, opt in enumerate(val_options, 1):
+        print(f"{i}. {opt}")
+        
+    val_choice = input("Enter choice (1-2): ").strip()
+
+    # DEFENSIVE PROGRAMMING: This block checks if the user entered numbers and if they are within the menu range.
+    # It prevents the application from faulting due to bad user input.
+    if row_choice.isdigit() and val_choice.isdigit():
+        r_idx = int(row_choice) - 1
+        v_idx = int(val_choice) - 1
+        
+        if 0 <= r_idx < len(row_options) and 0 <= v_idx < len(val_options):
+            row_field = row_options[r_idx]
+            val_field = val_options[v_idx]
+            
+            # DEFENSIVE PROGRAMMING: Double-check that the chosen column actually exists in the current file.
+            if row_field in df.columns and val_field in df.columns:
+                print(f"\nUSER INTERFACE: Generating custom report for {val_field} grouped by {row_field}...")
+                pivot = pd.pivot_table(df, values=val_field, index=row_field, aggfunc='sum')
+                print(pivot)
+            else:
+                print("CRITICAL ERROR: One of the columns selected is missing from this specific dataset.")
+        else:
+            print("USER ERROR: Selection is out of range. Returning to menu.")
+    else:
+        print("USER ERROR: Invalid input. Please enter a number.")
 
 
 def task_exit_dashboard(df):
     sys.exit("Exiting Dashboard. Goodbye!")
 
-# --- DYNAMIC MENU MANAGEMENT ---
+# Code to generate the menu
 
 def get_filtered_menu(df):
-    """
-    QUALITY ASSURANCE: Implements the requirement to hide analytics if data is missing.
-    By checking required columns here, we prevent the user from ever seeing 
-    options that would cause an execution error.
-    """
+
     #Displays label, function logic, required columns list
+
     options = [
         ("Show first n rows of sales data", task_show_rows, []),
         ("Total sales by region and order_type", 
@@ -169,7 +213,7 @@ def get_filtered_menu(df):
          task_unique_employees_by_region, 
          ['employee_name', 'sales_region']),
         
-        ("Create a custom pivot table", task_custom_pivot_placeholder, [])
+        ("Create a custom pivot table", task_custom_pivot_generator, [])
     ]
     
     # This is for maintainability, lists comprehension filters the menu based on actual data presence.
@@ -177,13 +221,11 @@ def get_filtered_menu(df):
     filtered.append(("Exit", task_exit_dashboard))
     return filtered
 
-# Controls the application, makes sure only valid options can be selected and hanlds the main loop.
+# Controls the application, makes sure only valid options can be selected and handles the main loop.
 
 def run_application():
-    """
-    USER INTERFACE: Intuitive dataset selection menu.
-    Allows for alternate data set loading as required.
-    """
+    # For user interface, this is an intuitive dataset selection menu. Allows for alternate data set loading.
+
     print("--- DATASET SELECTION ---")
     print("1. Use default Sales Data (Google Drive)")
     print("2. Enter custom Google Drive URL")
@@ -211,6 +253,7 @@ def run_application():
                 menu_items[int(sel)-1][1](sales_df)
             else:
                 print("USER ERROR: Please select a valid numeric option from the menu.")
-#conditional statement to run the application only if this script is executed directly
+
+# Conditional statement to run the application only if this script is executed directly
 if __name__ == "__main__":
     run_application()
