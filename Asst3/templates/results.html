@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Results{% endblock %}
+{% block content %}
+<section class="result-card reveal-in">
+  <p class="eyebrow">Final Summary</p>
+  <h1>{{ result.display_name or result.username }}, your score is {{ result.score }} / {{ result.total_questions }}</h1>
+
+  <div class="result-grid">
+    <article>
+      <p class="stat-label">Correct</p>
+      <p class="stat-value">{{ result.correct }}</p>
+    </article>
+    <article>
+      <p class="stat-label">Incorrect</p>
+      <p class="stat-value">{{ result.incorrect }}</p>
+    </article>
+    <article>
+      <p class="stat-label">Time taken</p>
+      <p class="stat-value">{{ result.time_taken_seconds }}s</p>
+    </article>
+    <article>
+      <p class="stat-label">High score</p>
+      <p class="stat-value">{{ result.high_score }}</p>
+    </article>
+    <article>
+      <p class="stat-label">Your rank</p>
+      <p class="stat-value">{% if result.rank %}#{{ result.rank }}{% else %}N/A{% endif %}</p>
+    </article>
+  </div>
+
+  {% if result.ended_by_timeout %}
+  <div class="flash flash-error">Quiz ended because the timer reached zero.</div>
+  {% endif %}
+
+  {% if result.new_high_score %}
+  <div class="flash flash-success">New high score achieved. Great job!</div>
+  {% endif %}
+
+  <h2>Areas for improvement</h2>
+  {% if result.areas_for_improvement %}
+    <ul class="improvement-list">
+      {% for item in result.areas_for_improvement %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Perfect run. No missed questions this time.</p>
+  {% endif %}
+
+  <h2>Top 10 global scores</h2>
+  <div class="leaderboard">
+    {% for row in top_scores %}
+    <div class="leaderboard-row">
+      <span>#{{ row.rank }} {{ row.display_name or row.username }}</span>
+      <span>{{ row.score }} / {{ row.total_questions }} in {{ row.time_taken_seconds }}s</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="action-row">
+    <a class="btn btn-primary" href="{{ url_for('quiz') }}">Play Again</a>
+    <a class="btn btn-secondary" href="{{ url_for('leaderboard') }}">Open Leaderboard</a>
+    <a class="btn btn-secondary" href="{{ url_for('home') }}">Home</a>
+  </div>
+</section>
+{% endblock %}

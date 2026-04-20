@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<section class="result-card reveal-in">
+  <p class="eyebrow">Global Rankings</p>
+  <h1>Top 10 Quiz Scores</h1>
+  {% if best_user_rank %}
+  <div class="flash flash-success">Your best ranking: #{{ best_user_rank }}</div>
+  {% else %}
+  <p class="muted">Complete a quiz to appear on the leaderboard.</p>
+  {% endif %}
+
+  <div class="leaderboard">
+    {% for row in top_scores %}
+    <div class="leaderboard-row">
+      <span>#{{ row.rank }} {{ row.display_name or row.username }}</span>
+      <span>
+        {{ row.score }} / {{ row.total_questions }}
+        {% if row.challenge_mode == 'timed' %}
+          | timed ({{ row.time_limit_seconds }}s)
+        {% else %}
+          | standard
+        {% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

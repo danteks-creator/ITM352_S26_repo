@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Home{% endblock %}
+{% block content %}
+<section class="hero-card reveal-in">
+  <p class="eyebrow">Interactive Web Quiz</p>
+  <h1>Challenge your knowledge with a dynamic question set</h1>
+  <p class="hero-copy">
+    Questions and answer choices are shuffled every session. Get instant feedback,
+    track your score, review your performance summary, and compete on the global leaderboard.
+  </p>
+  <div class="stat-row">
+    <div class="stat-item">
+      <p class="stat-label">Current high score</p>
+      <p class="stat-value">{{ high_score }}</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-label">Mode</p>
+      <p class="stat-value">Standard + Timed</p>
+    </div>
+  </div>
+  <div class="action-row">
+    {% if session.get('username') %}
+      <a class="btn btn-primary" href="{{ url_for('quiz') }}">Start Quiz</a>
+      <a class="btn btn-secondary" href="{{ url_for('results') }}">View Last Results</a>
+    {% else %}
+      <a class="btn btn-primary" href="{{ url_for('register') }}">Create Account</a>
+      <a class="btn btn-secondary" href="{{ url_for('login') }}">Login</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

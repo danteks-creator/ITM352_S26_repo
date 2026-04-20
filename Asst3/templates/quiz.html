@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Session{% endblock %}
+{% block content %}
+<section class="quiz-layout reveal-in">
+  <div class="quiz-status-card">
+    <div class="mode-controls" id="modeControls">
+      <button class="btn btn-secondary" id="startStandardBtn" type="button">Start Standard Mode</button>
+      <div class="timed-controls">
+        <label for="timerSelect">Seconds per question</label>
+        <select id="timerSelect">
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20" selected>20</option>
+          <option value="30">30</option>
+        </select>
+        <button class="btn btn-primary" id="startTimedBtn" type="button">Start Timed Mode</button>
+      </div>
+    </div>
+    <p id="progressText" class="muted">Question 0 / 0</p>
+    <p id="modeText" class="muted">Mode: not started</p>
+    <p id="timerText" class="timer-pill hidden">Time left: --s</p>
+    <h2 id="questionText">Loading question...</h2>
+    <form id="quizForm">
+      <fieldset id="optionsFieldset" class="option-grid"></fieldset>
+      <div class="action-row">
+        <button id="submitAnswer" class="btn btn-primary" type="submit">Submit Answer</button>
+      </div>
+    </form>
+  </div>
+
+  <aside class="score-card">
+    <h3>Live Score</h3>
+    <p id="scoreValue" class="score-value">0</p>
+    <p class="muted">Each correct answer gives +1 point.</p>
+    <div id="feedbackBox" class="feedback hidden"></div>
+  </aside>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+{% endblock %}

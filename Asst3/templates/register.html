@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<section class="form-card reveal-in">
+  <h1>Create Account</h1>
+  <p class="muted">Use 3-20 characters for username and at least 6 characters with one number for password.</p>
+  <form method="post" novalidate>
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" required maxlength="20" value="{{ username or '' }}">
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required>
+
+    <label for="confirm_password">Confirm password</label>
+    <input id="confirm_password" name="confirm_password" type="password" required>
+
+    <button class="btn btn-primary" type="submit">Register</button>
+  </form>
+</section>
+{% endblock %}

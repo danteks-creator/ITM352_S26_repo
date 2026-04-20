@@ -1,0 +1,16 @@
+[
+  {
+    "username": "danteks",
+    "display_name": "danteks",
+    "score": 5,
+    "total_questions": 5,
+    "correct": 5,
+    "incorrect": 0,
+    "time_taken_seconds": 28.34,
+    "areas_for_improvement": [],
+    "challenge_mode": "timed",
+    "time_limit_seconds": 20,
+    "ended_by_timeout": false,
+    "submitted_at": "2026-04-20T22:01:49.820717+00:00"
+  }
+]
