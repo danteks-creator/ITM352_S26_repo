@@ -1,3 +1,4 @@
+/* Main site colors and spacing values. */
 :root {
   --bg-main: #f5efe6;
   --bg-card: #fff9ef;
@@ -16,6 +17,7 @@
 }
 
 body {
+  /* Give the page a soft background and readable default text. */
   margin: 0;
   min-height: 100vh;
   font-family: "Space Grotesk", sans-serif;
@@ -55,6 +57,7 @@ h3 {
 }
 
 .site-header {
+  /* Keep the navigation bar aligned and easy to use. */
   max-width: 1080px;
   margin: 0 auto;
   padding: 1.1rem 1rem;
@@ -98,6 +101,7 @@ h3 {
 .result-card,
 .quiz-status-card,
 .score-card {
+  /* Shared card styling for the main pages. */
   background: var(--bg-card);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -218,6 +222,7 @@ input {
 }
 
 .quiz-layout {
+  /* Put the quiz and score panels side by side on wide screens. */
   display: grid;
   gap: 1rem;
   grid-template-columns: 2fr 1fr;
@@ -330,6 +335,7 @@ input {
 }
 
 .reveal-in {
+  /* Fade and rise in when the page loads. */
   animation: rise-in 450ms ease-out both;
 }
 

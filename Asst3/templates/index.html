@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Quiz Home{% endblock %}
 {% block content %}
+<!-- Home page introduces the quiz and links to the main actions. -->
 <section class="hero-card reveal-in">
   <p class="eyebrow">Interactive Web Quiz</p>
   <h1>Challenge your knowledge with a dynamic question set</h1>
@@ -19,6 +20,7 @@
     </div>
   </div>
   <div class="action-row">
+    <!-- Show quiz actions only if the user is already logged in. -->
     {% if session.get('username') %}
       <a class="btn btn-primary" href="{{ url_for('quiz') }}">Start Quiz</a>
       <a class="btn btn-secondary" href="{{ url_for('results') }}">View Last Results</a>

@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Login{% endblock %}
 {% block content %}
+<!-- Login page posts credentials to the Flask login route. -->
 <section class="form-card reveal-in">
   <h1>Login</h1>
   <p class="muted">Sign in to start a quiz session.</p>
   <form method="post" novalidate>
+    <!-- Username and password are validated in server-side Python. -->
     <label for="username">Username</label>
     <input id="username" name="username" type="text" required maxlength="20" value="{{ username or '' }}">
 

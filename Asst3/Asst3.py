@@ -1,3 +1,8 @@
+"""Flask quiz application for Asst3.
+
+This file loads quiz data from JSON, serves the web pages, and stores scores.
+"""
+
 import json
 import os
 import random
@@ -30,6 +35,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "itm352-quiz-secret-key")
 
 
+# Create the data files if they are missing so the app can start cleanly.
 def ensure_data_files() -> None:
     if not os.path.exists(USERS_FILE):
         save_json(USERS_FILE, {})
@@ -41,6 +47,7 @@ def ensure_data_files() -> None:
 
 
 def load_json(path: str, default):
+    # Read JSON data from disk and fall back to a safe default if needed.
     try:
         with open(path, "r", encoding="utf-8") as data_file:
             return json.load(data_file)
@@ -51,11 +58,13 @@ def load_json(path: str, default):
 
 
 def save_json(path: str, payload) -> None:
+    # Save Python data back to a JSON file.
     with open(path, "w", encoding="utf-8") as data_file:
         json.dump(payload, data_file, indent=2)
 
 
 def read_high_score() -> int:
+    # Load the stored high score from the text file.
     try:
         with open(HIGHSCORE_FILE, "r", encoding="utf-8") as score_file:
             return int(score_file.read().strip() or 0)
@@ -64,11 +73,13 @@ def read_high_score() -> int:
 
 
 def write_high_score(score: int) -> None:
+    # Update the high score file when a new record is reached.
     with open(HIGHSCORE_FILE, "w", encoding="utf-8") as score_file:
         score_file.write(str(score))
 
 
 def validate_question_payload(question: dict) -> bool:
+    # Make sure each question has the fields the quiz needs.
     required_keys = {"question", "options", "correct_answers"}
     if not required_keys.issubset(question.keys()):
         return False
@@ -82,6 +93,7 @@ def validate_question_payload(question: dict) -> bool:
 
 
 def load_questions() -> list:
+    # Read and validate quiz questions from the JSON file.
     questions = load_json(QUESTIONS_FILE, [])
     if not isinstance(questions, list):
         raise ValueError("Question data must be a list.")
@@ -94,6 +106,7 @@ def load_questions() -> list:
 
 
 def login_required(route_func):
+    # Protect routes that should only be visible after login.
     @wraps(route_func)
     def wrapper(*args, **kwargs):
         if "username" not in session:
@@ -105,6 +118,7 @@ def login_required(route_func):
 
 
 def reshuffle_question(question: dict, question_id: int) -> dict:
+    # Shuffle the answer order and remap the answer letters.
     option_items = list(question["options"].items())
     random.shuffle(option_items)
 
@@ -133,6 +147,7 @@ def reshuffle_question(question: dict, question_id: int) -> dict:
 
 
 def initialize_quiz_session() -> None:
+    # Start a new standard quiz session.
     questions = load_questions()
     indexed_questions = list(enumerate(questions))
     random.shuffle(indexed_questions)
@@ -152,6 +167,7 @@ def initialize_quiz_session() -> None:
 
 
 def initialize_quiz_session_with_mode(challenge_mode: str, time_limit_seconds: int) -> None:
+    # Start a new quiz session and store the selected mode.
     questions = load_questions()
     indexed_questions = list(enumerate(questions))
     random.shuffle(indexed_questions)
@@ -173,6 +189,7 @@ def initialize_quiz_session_with_mode(challenge_mode: str, time_limit_seconds: i
 
 
 def remaining_question_seconds() -> float:
+    # Calculate how much time is left for the current timed question.
     if session.get("challenge_mode") != "timed":
         return 0
     started_at = session.get("question_started_at", time.time())
@@ -181,6 +198,7 @@ def remaining_question_seconds() -> float:
 
 
 def current_question_payload():
+    # Build the current question response that the browser will display.
     questions = session.get("quiz_questions", [])
     progress = session.get("quiz_progress", 0)
     if progress >= len(questions):
@@ -201,6 +219,7 @@ def current_question_payload():
 
 
 def calculate_result() -> dict:
+    # Collect the final score summary shown on the results page.
     total_questions = len(session.get("quiz_questions", []))
     score = session.get("quiz_score", 0)
     incorrect = max(total_questions - score, 0)
@@ -230,6 +249,7 @@ def calculate_result() -> dict:
 
 
 def persist_result(result: dict) -> dict:
+    # Save the completed quiz result and update the high score if needed.
     scores = load_json(SCORES_FILE, [])
     if not isinstance(scores, list):
         scores = []
@@ -248,6 +268,7 @@ def persist_result(result: dict) -> dict:
 
 
 def sorted_scores(scores: list) -> list:
+    # Sort scores from best to worst for the leaderboard.
     return sorted(
         scores,
         key=lambda row: (
@@ -260,6 +281,7 @@ def sorted_scores(scores: list) -> list:
 
 
 def compute_rankings(scores: list) -> list:
+    # Add rank numbers to the sorted leaderboard entries.
     ranked = []
     for idx, row in enumerate(sorted_scores(scores), start=1):
         enriched = dict(row)
@@ -269,6 +291,7 @@ def compute_rankings(scores: list) -> list:
 
 
 def enrich_result_with_ranking(result: dict) -> dict:
+    # Attach the user rank to the final result if we can find it.
     scores = load_json(SCORES_FILE, [])
     ranked_scores = compute_rankings(scores if isinstance(scores, list) else [])
 
@@ -288,6 +311,7 @@ def enrich_result_with_ranking(result: dict) -> dict:
 
 
 def validate_username(username: str) -> str:
+    # Check that the username is short, readable, and safe.
     normalized = (username or "").strip()
     if len(normalized) < 3 or len(normalized) > 20:
         return "Username must be 3-20 characters."
@@ -297,6 +321,7 @@ def validate_username(username: str) -> str:
 
 
 def validate_password(password: str) -> str:
+    # Require a password that is long enough and includes a number.
     if len(password or "") < 6:
         return "Password must be at least 6 characters."
     if not re.search(r"\d", password):
@@ -305,6 +330,7 @@ def validate_password(password: str) -> str:
 
 
 def validate_display_name(display_name: str) -> str:
+    # Keep leaderboard names simple and readable.
     normalized = (display_name or "").strip()
     if len(normalized) < 2 or len(normalized) > 30:
         return "Name must be 2-30 characters."
@@ -318,12 +344,14 @@ ensure_data_files()
 
 @app.route("/")
 def home():
+    # Show the landing page with the stored high score.
     high_score = read_high_score()
     return render_template("index.html", high_score=high_score)
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    # Handle new account creation.
     if request.method == "GET":
         return render_template("register.html")
 
@@ -362,6 +390,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # Handle user login.
     if request.method == "GET":
         return render_template("login.html")
 
@@ -382,6 +411,7 @@ def login():
 
 @app.route("/logout")
 def logout():
+    # Clear the session when the user logs out.
     session.clear()
     flash("You have been logged out.", "success")
     return redirect(url_for("home"))
@@ -390,12 +420,14 @@ def logout():
 @app.route("/quiz")
 @login_required
 def quiz():
+    # Render the quiz page after login.
     return render_template("quiz.html", username=session.get("username"))
 
 
 @app.route("/results")
 @login_required
 def results():
+    # Show the latest quiz summary.
     result = session.get("latest_result")
     if not result:
         flash("No quiz result found. Please take a quiz first.", "error")
@@ -412,6 +444,7 @@ def results():
 @app.route("/leaderboard")
 @login_required
 def leaderboard():
+    # Show the top 10 scores and the current user's best rank.
     scores = load_json(SCORES_FILE, [])
     ranked_scores = compute_rankings(scores if isinstance(scores, list) else [])
     top_scores = ranked_scores[:10]
@@ -433,10 +466,12 @@ def leaderboard():
 @app.route("/api/quiz/start", methods=["POST"])
 @login_required
 def api_quiz_start():
+    # Start a new quiz session from the browser.
     payload = request.get_json(silent=True) or {}
     challenge_mode = payload.get("challenge_mode", "standard")
     time_limit_seconds = payload.get("time_limit_seconds", 20)
 
+    # Validate mode and timer settings before creating a session.
     if challenge_mode not in {"standard", "timed"}:
         return jsonify({"error": "challenge_mode must be 'standard' or 'timed'."}), 400
     if challenge_mode == "timed":
@@ -463,6 +498,7 @@ def api_quiz_start():
 @app.route("/api/quiz/question", methods=["GET"])
 @login_required
 def api_quiz_question():
+    # Return the current question if a quiz is active.
     question = current_question_payload()
     if not question:
         return jsonify({"error": "Quiz session not started or already complete."}), 404
@@ -472,12 +508,14 @@ def api_quiz_question():
 @app.route("/api/quiz/answer", methods=["POST"])
 @login_required
 def api_quiz_answer():
+    # Check the selected answer and move to the next question.
     questions = session.get("quiz_questions", [])
     progress = session.get("quiz_progress", 0)
 
     if not questions or progress >= len(questions):
         return jsonify({"error": "Quiz is not active. Start a new quiz."}), 400
 
+    # If timed mode has already expired, end the quiz right away.
     if session.get("challenge_mode") == "timed" and remaining_question_seconds() <= 0:
         session["ended_by_timeout"] = True
         current_question = questions[progress]
@@ -510,6 +548,7 @@ def api_quiz_answer():
 
     payload = request.get_json(silent=True) or {}
     selected = payload.get("answers")
+    # The browser must send answers as a list like ["a", "c"].
     if not isinstance(selected, list):
         return jsonify({"error": "answers must be a list."}), 400
 
@@ -522,6 +561,7 @@ def api_quiz_answer():
     if any(option not in valid_keys for option in selected_normalized):
         return jsonify({"error": "Submitted option is invalid."}), 400
 
+    # Handle "any" match type or exact full-match answers.
     correct_answers = sorted(current_question["correct_answers"])
     if current_question.get("match_type") == "any":
         is_correct = any(option in correct_answers for option in selected_normalized)
@@ -546,6 +586,7 @@ def api_quiz_answer():
 
     next_question = current_question_payload()
     if next_question:
+        # Return the next question without ending the quiz yet.
         return jsonify(
             {
                 "is_correct": is_correct,
@@ -562,6 +603,8 @@ def api_quiz_answer():
     session["latest_result"] = result
     session["quiz_finished"] = True
 
+    # Quiz is complete, so return final data and redirect target.
+
     return jsonify(
         {
             "is_correct": is_correct,
@@ -577,6 +620,7 @@ def api_quiz_answer():
 @app.route("/api/quiz/timeout", methods=["POST"])
 @login_required
 def api_quiz_timeout():
+    # End the quiz immediately when the timer runs out.
     questions = session.get("quiz_questions", [])
     progress = session.get("quiz_progress", 0)
 
@@ -585,6 +629,7 @@ def api_quiz_timeout():
     if session.get("challenge_mode") != "timed":
         return jsonify({"error": "Timeout endpoint is only available in timed mode."}), 400
 
+    # Record the timed-out question as incorrect before finalizing.
     session["ended_by_timeout"] = True
     current_question = questions[progress]
     quiz_answers = session.get("quiz_answers", [])
@@ -620,6 +665,7 @@ def api_quiz_timeout():
 @app.route("/api/quiz/display-name", methods=["POST"])
 @login_required
 def api_quiz_display_name():
+    # Save the name the user wants to show on the leaderboard.
     result = session.get("latest_result")
     if not result:
         return jsonify({"error": "No quiz result is available yet."}), 400
@@ -628,6 +674,7 @@ def api_quiz_display_name():
     display_name = payload.get("display_name", "")
 
     if display_name:
+        # Validate custom leaderboard names.
         name_error = validate_display_name(display_name)
         if name_error:
             return jsonify({"error": name_error}), 400
@@ -639,6 +686,7 @@ def api_quiz_display_name():
 
     scores = load_json(SCORES_FILE, [])
     if isinstance(scores, list):
+        # Update the exact stored score row that matches this result.
         updated = False
         for idx, row in enumerate(scores):
             if (
@@ -662,7 +710,9 @@ def api_quiz_display_name():
 @app.route("/api/scores", methods=["GET", "POST"])
 @login_required
 def api_scores():
+    # Let the browser read or save score history.
     if request.method == "GET":
+        # Return ranked results plus a quick top-10 slice.
         scores = load_json(SCORES_FILE, [])
         ranked_scores = compute_rankings(scores if isinstance(scores, list) else [])
         top_10 = ranked_scores[:10]
@@ -689,6 +739,7 @@ def api_scores():
     if not isinstance(time_taken, (int, float)) or time_taken < 0:
         return jsonify({"error": "time_taken_seconds must be non-negative."}), 400
 
+    # Build a score record from request data and save it.
     result = {
         "username": username,
         "display_name": payload.get("display_name", username),
@@ -710,11 +761,13 @@ def api_scores():
 
 @app.errorhandler(404)
 def not_found(_error):
+    # Show a friendly page when a route is missing.
     return render_template("error.html", message="Page not found."), 404
 
 
 @app.errorhandler(500)
 def server_error(_error):
+    # Show a friendly page if the server hits an unexpected error.
     return (
         render_template(
             "error.html",

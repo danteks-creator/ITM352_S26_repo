@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Quiz Results{% endblock %}
 {% block content %}
+<!-- This page summarizes the final score and leaderboard position. -->
 <section class="result-card reveal-in">
   <p class="eyebrow">Final Summary</p>
   <h1>{{ result.display_name or result.username }}, your score is {{ result.score }} / {{ result.total_questions }}</h1>
 
   <div class="result-grid">
+    <!-- These cards show the final quiz statistics. -->
     <article>
       <p class="stat-label">Correct</p>
       <p class="stat-value">{{ result.correct }}</p>
@@ -48,6 +50,7 @@
   {% endif %}
 
   <h2>Top 10 global scores</h2>
+  <!-- The leaderboard uses the saved score history from the server. -->
   <div class="leaderboard">
     {% for row in top_scores %}
     <div class="leaderboard-row">

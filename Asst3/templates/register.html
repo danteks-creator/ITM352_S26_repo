@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Register{% endblock %}
 {% block content %}
+<!-- Registration page creates a new account for quiz access. -->
 <section class="form-card reveal-in">
   <h1>Create Account</h1>
   <p class="muted">Use 3-20 characters for username and at least 6 characters with one number for password.</p>
   <form method="post" novalidate>
+    <!-- These inputs are checked for length, format, and match. -->
     <label for="username">Username</label>
     <input id="username" name="username" type="text" required maxlength="20" value="{{ username or '' }}">
 

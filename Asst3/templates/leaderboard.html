@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Leaderboard{% endblock %}
 {% block content %}
+<!-- Leaderboard page shows the top global scores and user rank. -->
 <section class="result-card reveal-in">
   <p class="eyebrow">Global Rankings</p>
   <h1>Top 10 Quiz Scores</h1>
@@ -11,6 +12,7 @@
   {% endif %}
 
   <div class="leaderboard">
+    <!-- Each row is one saved quiz attempt from scores.json. -->
     {% for row in top_scores %}
     <div class="leaderboard-row">
       <span>#{{ row.rank }} {{ row.display_name or row.username }}</span>

@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}Quiz Session{% endblock %}
 {% block content %}
+<!-- This page shows the live quiz and the timer-based mode controls. -->
 <section class="quiz-layout reveal-in">
   <div class="quiz-status-card">
+    <!-- These buttons let the user choose standard or timed mode. -->
     <div class="mode-controls" id="modeControls">
       <button class="btn btn-secondary" id="startStandardBtn" type="button">Start Standard Mode</button>
       <div class="timed-controls">
@@ -18,6 +20,7 @@
     </div>
     <p id="progressText" class="muted">Question 0 / 0</p>
     <p id="modeText" class="muted">Mode: not started</p>
+    <!-- The timer pill updates every second in timed mode. -->
     <p id="timerText" class="timer-pill hidden">Time left: --s</p>
     <h2 id="questionText">Loading question...</h2>
     <form id="quizForm">

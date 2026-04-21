@@ -1,3 +1,4 @@
+// This script controls the quiz flow, timer mode, and leaderboard name prompt.
 const questionText = document.getElementById("questionText");
 const progressText = document.getElementById("progressText");
 const optionsFieldset = document.getElementById("optionsFieldset");
@@ -17,12 +18,14 @@ let currentMode = "standard";
 let isFinishingQuiz = false;
 
 function showFeedback(text, ok) {
+  // Update the on-page feedback message after an answer is submitted.
   feedbackBox.textContent = text;
   feedbackBox.classList.remove("hidden", "success", "error");
   feedbackBox.classList.add(ok ? "success" : "error");
 }
 
 function clearQuestionTimer() {
+  // Stop the countdown for the current question.
   if (questionTimer) {
     window.clearInterval(questionTimer);
     questionTimer = null;
@@ -30,6 +33,7 @@ function clearQuestionTimer() {
 }
 
 function updateTimerPill(secondsLeft) {
+  // Show the remaining time in the quiz header.
   if (currentMode !== "timed") {
     timerText.classList.add("hidden");
     timerText.classList.remove("warning");
@@ -47,6 +51,7 @@ function updateTimerPill(secondsLeft) {
 }
 
 function startQuestionTimer(initialSeconds) {
+  // Start the countdown for timed mode.
   clearQuestionTimer();
   if (currentMode !== "timed") {
     updateTimerPill(0);
@@ -67,6 +72,7 @@ function startQuestionTimer(initialSeconds) {
 }
 
 async function saveDisplayName(defaultName = "") {
+  // Ask the user for a leaderboard name after the quiz finishes.
   const entered = window.prompt("Quiz complete. Enter your name for the leaderboard:", defaultName || "");
   if (entered === null) {
     return;
@@ -88,6 +94,7 @@ async function saveDisplayName(defaultName = "") {
 }
 
 async function handleQuizCompletion(data) {
+  // Handle final quiz completion and go to the results page.
   if (isFinishingQuiz) {
     return;
   }
@@ -102,6 +109,7 @@ async function handleQuizCompletion(data) {
 }
 
 async function handleQuestionTimeout() {
+  // Tell the server that the timer has expired.
   if (isFinishingQuiz) {
     return;
   }
@@ -123,6 +131,7 @@ async function handleQuestionTimeout() {
 }
 
 function renderQuestion(question) {
+  // Draw the current question and its answer options on the page.
   currentQuestion = question;
   questionText.textContent = question.question;
   progressText.textContent = `Question ${question.question_number} / ${question.total_questions}`;
@@ -158,6 +167,7 @@ function renderQuestion(question) {
 }
 
 async function startQuiz(challengeMode = "standard") {
+  // Ask the Flask server to start a new quiz session.
   const timeLimit = Number(timerSelect?.value || 20);
   const res = await fetch("/api/quiz/start", {
     method: "POST",
@@ -184,6 +194,7 @@ async function startQuiz(challengeMode = "standard") {
 }
 
 quizForm?.addEventListener("submit", async (event) => {
+  // Send the selected answer to the server.
   event.preventDefault();
 
   if (!currentQuestion) {
@@ -220,6 +231,7 @@ quizForm?.addEventListener("submit", async (event) => {
 });
 
 if (quizForm) {
+  // Wire up the buttons only when the quiz page is open.
   startStandardBtn?.addEventListener("click", () => startQuiz("standard"));
   startTimedBtn?.addEventListener("click", () => startQuiz("timed"));
 }
