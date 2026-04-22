@@ -2,6 +2,16 @@
 {% block title %}Quiz Question{% endblock %}
 {% block content %}
 <div class="question-number">Question {{ question.question_number }} of {{ question.total_questions }}</div>
+{% if question.challenge_mode == 'timed' %}
+<p style="margin-top: 8px; color: #b45309; font-weight: bold;">
+    Timed Mode: 60 seconds per question
+</p>
+<p style="margin-top: 4px; color: #b45309;">
+    Time left when page loaded: {{ question.time_left_seconds }} seconds
+</p>
+{% else %}
+<p style="margin-top: 8px; color: #555;">Standard Mode</p>
+{% endif %}
 <h2>{{ question.question }}</h2>
 
 <form method="POST" action="{{ url_for('quiz_question') }}">

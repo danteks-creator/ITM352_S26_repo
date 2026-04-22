@@ -14,6 +14,21 @@
 </div>
 
 <div class="stat">
+    <strong>Challenge Mode:</strong>
+    {% if result.challenge_mode == 'timed' %}
+        Timed ({{ result.time_limit_seconds }} seconds per question)
+    {% else %}
+        Standard
+    {% endif %}
+</div>
+
+{% if result.ended_by_timeout %}
+<div class="stat" style="border-left-color: #dc2626;">
+    <strong>Quiz Ended:</strong> Time expired in timed mode.
+</div>
+{% endif %}
+
+<div class="stat">
     <strong>Current High Score:</strong> {{ result.high_score }}
     {% if result.new_high_score %}
         <span style="color: #28a745; font-weight: bold;">🎉 New High Score!</span>

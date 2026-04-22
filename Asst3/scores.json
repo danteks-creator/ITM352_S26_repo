@@ -17,5 +17,22 @@
     "time_limit_seconds": 0,
     "ended_by_timeout": false,
     "submitted_at": "2026-04-22T08:14:43.410991+00:00"
+  },
+  {
+    "username": "danteks",
+    "display_name": "danteks",
+    "score": 3,
+    "total_questions": 5,
+    "correct": 3,
+    "incorrect": 2,
+    "time_taken_seconds": 27.58,
+    "areas_for_improvement": [
+      "Why does the author of this quiz hate birds?",
+      "In the hit song 'We Bring the BOOM', what location do the singers A.J. and Big Justice say they are bringing the boom from?"
+    ],
+    "challenge_mode": "standard",
+    "time_limit_seconds": 0,
+    "ended_by_timeout": false,
+    "submitted_at": "2026-04-22T08:19:29.049923+00:00"
   }
 ]

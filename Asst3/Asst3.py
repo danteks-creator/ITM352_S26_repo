@@ -157,7 +157,38 @@ def initialize_quiz_session() -> None:
     session["quiz_score"] = 0
     session["quiz_answers"] = []
     session["quiz_start_time"] = time.time()
+    session["question_started_at"] = time.time()
     session["quiz_finished"] = False
+    session["challenge_mode"] = "standard"
+    session["time_limit_seconds"] = 0
+    session["ended_by_timeout"] = False
+
+
+def initialize_quiz_session_with_mode(challenge_mode: str) -> None:
+    # Start a new quiz session and store the selected mode.
+    initialize_quiz_session()
+    session["challenge_mode"] = challenge_mode
+    session["time_limit_seconds"] = 60 if challenge_mode == "timed" else 0
+
+
+def remaining_question_seconds() -> float:
+    # Calculate how much time is left for the current timed question.
+    if session.get("challenge_mode") != "timed":
+        return 0
+    started_at = session.get("question_started_at", time.time())
+    limit = session.get("time_limit_seconds", 0)
+    return max(float(limit) - (time.time() - float(started_at)), 0.0)
+
+
+def finalize_quiz(ended_by_timeout: bool = False) -> dict:
+    # Build, save, and store the final quiz result in the session.
+    session["ended_by_timeout"] = bool(ended_by_timeout)
+    result = calculate_result()
+    result = persist_result(result)
+    result = enrich_result_with_ranking(result)
+    session["latest_result"] = result
+    session["quiz_finished"] = True
+    return result
 
 
 def current_question_payload():
@@ -176,6 +207,9 @@ def current_question_payload():
         "match_type": question.get("match_type", "all"),
         "question_number": progress + 1,
         "total_questions": len(questions),
+        "challenge_mode": session.get("challenge_mode", "standard"),
+        "time_limit_seconds": session.get("time_limit_seconds", 0),
+        "time_left_seconds": round(remaining_question_seconds(), 2),
     }
 
 
@@ -202,9 +236,9 @@ def calculate_result() -> dict:
         "incorrect": incorrect,
         "time_taken_seconds": time_taken,
         "areas_for_improvement": incorrect_questions,
-        "challenge_mode": "standard",
-        "time_limit_seconds": 0,
-        "ended_by_timeout": False,
+        "challenge_mode": session.get("challenge_mode", "standard"),
+        "time_limit_seconds": session.get("time_limit_seconds", 0),
+        "ended_by_timeout": session.get("ended_by_timeout", False),
         "submitted_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -385,8 +419,13 @@ def quiz():
     if request.method == "GET":
         return render_template("quiz.html", username=session.get("username"))
 
-    # POST: User clicked "Start Quiz" button, initialize and redirect to quiz question.
-    initialize_quiz_session()
+    # POST: User starts a new quiz with standard or timed mode.
+    challenge_mode = request.form.get("challenge_mode", "standard")
+    if challenge_mode not in {"standard", "timed"}:
+        flash("Invalid challenge mode selected.", "error")
+        return redirect(url_for("quiz"))
+
+    initialize_quiz_session_with_mode(challenge_mode)
     return redirect(url_for("quiz_question"))
 
 
@@ -399,6 +438,28 @@ def quiz_question():
         if not question:
             flash("Quiz not started. Please start a new quiz.", "error")
             return redirect(url_for("quiz"))
+
+        # End the quiz if the timed question has already expired.
+        if session.get("challenge_mode") == "timed" and remaining_question_seconds() <= 0:
+            questions = session.get("quiz_questions", [])
+            progress = session.get("quiz_progress", 0)
+            if questions and progress < len(questions):
+                current_question = questions[progress]
+                quiz_answers = session.get("quiz_answers", [])
+                quiz_answers.append(
+                    {
+                        "question": current_question["question"],
+                        "selected": [],
+                        "correct_answers": sorted(current_question["correct_answers"]),
+                        "is_correct": False,
+                    }
+                )
+                session["quiz_answers"] = quiz_answers
+                session["quiz_progress"] = len(questions)
+            finalize_quiz(ended_by_timeout=True)
+            flash("Time is up. Quiz ended.", "error")
+            return redirect(url_for("results"))
+
         return render_template("quiz_question.html", question=question)
 
     # POST: User submitted an answer, process and move to next question.
@@ -407,6 +468,24 @@ def quiz_question():
 
     if not questions or progress >= len(questions):
         flash("Quiz already completed.", "error")
+        return redirect(url_for("results"))
+
+    # In timed mode, stop the quiz if the current question expired.
+    if session.get("challenge_mode") == "timed" and remaining_question_seconds() <= 0:
+        current_question = questions[progress]
+        quiz_answers = session.get("quiz_answers", [])
+        quiz_answers.append(
+            {
+                "question": current_question["question"],
+                "selected": [],
+                "correct_answers": sorted(current_question["correct_answers"]),
+                "is_correct": False,
+            }
+        )
+        session["quiz_answers"] = quiz_answers
+        session["quiz_progress"] = len(questions)
+        finalize_quiz(ended_by_timeout=True)
+        flash("Time is up. Quiz ended.", "error")
         return redirect(url_for("results"))
 
     # Get selected answers from form.
@@ -436,14 +515,11 @@ def quiz_question():
     )
     session["quiz_answers"] = quiz_answers
     session["quiz_progress"] = progress + 1
+    session["question_started_at"] = time.time()
 
     # Check if quiz is finished.
     if progress + 1 >= len(questions):
-        result = calculate_result()
-        result = persist_result(result)
-        result = enrich_result_with_ranking(result)
-        session["latest_result"] = result
-        session["quiz_finished"] = True
+        finalize_quiz(ended_by_timeout=False)
         flash("Quiz completed!", "success")
         return redirect(url_for("results"))
 

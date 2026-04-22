@@ -2,9 +2,20 @@
 {% block title %}Quiz{% endblock %}
 {% block content %}
 <h1>Quiz</h1>
-<p>Click the button below to start a new quiz session. You will answer all questions one at a time.</p>
+<p>Choose a mode and start a new quiz session. You will answer all questions one at a time.</p>
 
 <form method="POST" action="{{ url_for('quiz') }}">
+    <div style="margin: 15px 0;">
+        <label style="display: block; margin-bottom: 6px; font-weight: bold;">Challenge Mode</label>
+        <label style="display: block; margin-bottom: 8px;">
+            <input type="radio" name="challenge_mode" value="standard" checked>
+            Standard Mode
+        </label>
+        <label style="display: block;">
+            <input type="radio" name="challenge_mode" value="timed">
+            Timed Mode (1 minute per question)
+        </label>
+    </div>
     <button type="submit" class="btn btn-primary">Start Quiz</button>
 </form>
 
@@ -14,6 +25,7 @@
         <li>Questions are shuffled randomly each session</li>
         <li>Answer choices are shuffled for each question</li>
         <li>You get 1 point for each correct answer</li>
+        <li>Timed mode gives 60 seconds per question</li>
         <li>Your score and performance are saved after the quiz</li>
         <li>View your results and compare on the leaderboard</li>
     </ul>
