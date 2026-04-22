@@ -2,5 +2,9 @@
   "danteks": {
     "password_hash": "scrypt:32768:8:1$9jgm2ZJSMbbApxXZ$61a51243a17062b80c8b91a554cc091596b9e123c3a274675dbec3701144bd068ad2102754d0c1bf4f26929f937e0006ef0c42558f4f0613ac83e1bcc1d5ea17",
     "created_at": "2026-04-22T08:12:20.260170+00:00"
+  },
+  "dantesaitoj": {
+    "password_hash": "scrypt:32768:8:1$0yhZKpdtR77OqthF$cae869ca84f4dd07c76eb03feb0f3d7bf12e023f58e47e1f7423f5a439c2435d34c014236dc8e9873356f76511c2825773c89d0c169cb7ad67749414f63776e3",
+    "created_at": "2026-04-22T08:39:35.649445+00:00"
   }
 }

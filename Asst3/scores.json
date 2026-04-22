@@ -53,5 +53,38 @@
     "time_limit_seconds": 0,
     "ended_by_timeout": false,
     "submitted_at": "2026-04-22T08:29:37.998051+00:00"
+  },
+  {
+    "username": "dantesaitoj",
+    "display_name": "dantesaitoj",
+    "score": 1,
+    "total_questions": 5,
+    "correct": 1,
+    "incorrect": 4,
+    "time_taken_seconds": 14.28,
+    "areas_for_improvement": [
+      "Who is the viral social media influencer and streamer known for laughing at someone's mom being homeless?",
+      "In the hit song 'We Bring the BOOM', what location do the singers A.J. and Big Justice say they are bringing the boom from?",
+      "Why does the author of this quiz hate birds?",
+      "Which numbers are a multiple of 1?"
+    ],
+    "challenge_mode": "standard",
+    "time_limit_seconds": 0,
+    "ended_by_timeout": false,
+    "submitted_at": "2026-04-22T08:40:02.355594+00:00"
+  },
+  {
+    "username": "dantesaitoj",
+    "display_name": "dantesaitoj",
+    "score": 5,
+    "total_questions": 5,
+    "correct": 5,
+    "incorrect": 0,
+    "time_taken_seconds": 25.23,
+    "areas_for_improvement": [],
+    "challenge_mode": "timed",
+    "time_limit_seconds": 60,
+    "ended_by_timeout": false,
+    "submitted_at": "2026-04-22T08:40:33.883352+00:00"
   }
 ]
