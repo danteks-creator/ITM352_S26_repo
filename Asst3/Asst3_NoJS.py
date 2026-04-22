@@ -1,7 +1,3 @@
-"""Flask quiz application for Asst3.
-
-This file loads quiz data from JSON, serves the web pages, and stores scores.
-"""
 
 import json
 import os
@@ -15,7 +11,6 @@ from functools import wraps
 from flask import (
     Flask,
     flash,
-    jsonify,
     redirect,
     render_template,
     request,
@@ -162,59 +157,25 @@ def initialize_quiz_session() -> None:
     session["quiz_score"] = 0
     session["quiz_answers"] = []
     session["quiz_start_time"] = time.time()
-    session["question_started_at"] = time.time()
     session["quiz_finished"] = False
-
-
-def initialize_quiz_session_with_mode(challenge_mode: str, time_limit_seconds: int) -> None:
-    # Start a new quiz session and store the selected mode.
-    questions = load_questions()
-    indexed_questions = list(enumerate(questions))
-    random.shuffle(indexed_questions)
-
-    shuffled_questions = [
-        reshuffle_question(question, question_id)
-        for question_id, question in indexed_questions
-    ]
-
-    session["quiz_questions"] = shuffled_questions
-    session["quiz_progress"] = 0
-    session["quiz_score"] = 0
-    session["quiz_answers"] = []
-    session["quiz_start_time"] = time.time()
-    session["question_started_at"] = time.time()
-    session["quiz_finished"] = False
-    session["challenge_mode"] = challenge_mode
-    session["time_limit_seconds"] = time_limit_seconds if challenge_mode == "timed" else 0
-
-
-def remaining_question_seconds() -> float:
-    # Calculate how much time is left for the current timed question.
-    if session.get("challenge_mode") != "timed":
-        return 0
-    started_at = session.get("question_started_at", time.time())
-    limit = session.get("time_limit_seconds", 0)
-    return max(float(limit) - (time.time() - float(started_at)), 0.0)
 
 
 def current_question_payload():
-    # Build the current question response that the browser will display.
+    # Build the current question response for template rendering.
     questions = session.get("quiz_questions", [])
     progress = session.get("quiz_progress", 0)
     if progress >= len(questions):
         return None
 
     question = questions[progress]
-    timer_seconds_left = round(remaining_question_seconds(), 2)
     return {
         "id": question["id"],
         "question": question["question"],
         "options": question["options"],
+        "correct_answers": question["correct_answers"],
+        "match_type": question.get("match_type", "all"),
         "question_number": progress + 1,
         "total_questions": len(questions),
-        "challenge_mode": session.get("challenge_mode", "standard"),
-        "time_limit_seconds": session.get("time_limit_seconds", 0),
-        "time_left_seconds": timer_seconds_left,
     }
 
 
@@ -241,9 +202,9 @@ def calculate_result() -> dict:
         "incorrect": incorrect,
         "time_taken_seconds": time_taken,
         "areas_for_improvement": incorrect_questions,
-        "challenge_mode": session.get("challenge_mode", "standard"),
-        "time_limit_seconds": session.get("time_limit_seconds", 0),
-        "ended_by_timeout": session.get("ended_by_timeout", False),
+        "challenge_mode": "standard",
+        "time_limit_seconds": 0,
+        "ended_by_timeout": False,
         "submitted_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -417,11 +378,77 @@ def logout():
     return redirect(url_for("home"))
 
 
-@app.route("/quiz")
+@app.route("/quiz", methods=["GET", "POST"])
 @login_required
 def quiz():
-    # Render the quiz page after login.
-    return render_template("quiz.html", username=session.get("username"))
+    # GET: Show the quiz mode selection page.
+    if request.method == "GET":
+        return render_template("quiz.html", username=session.get("username"))
+
+    # POST: User clicked "Start Quiz" button, initialize and redirect to quiz question.
+    initialize_quiz_session()
+    return redirect(url_for("quiz_question"))
+
+
+@app.route("/quiz/question", methods=["GET", "POST"])
+@login_required
+def quiz_question():
+    # GET: Show the current question.
+    if request.method == "GET":
+        question = current_question_payload()
+        if not question:
+            flash("Quiz not started. Please start a new quiz.", "error")
+            return redirect(url_for("quiz"))
+        return render_template("quiz_question.html", question=question)
+
+    # POST: User submitted an answer, process and move to next question.
+    questions = session.get("quiz_questions", [])
+    progress = session.get("quiz_progress", 0)
+
+    if not questions or progress >= len(questions):
+        flash("Quiz already completed.", "error")
+        return redirect(url_for("results"))
+
+    # Get selected answers from form.
+    selected = request.form.getlist("answer")
+    selected_normalized = sorted({str(option).lower().strip() for option in selected if option})
+
+    current_question = questions[progress]
+    correct_answers = sorted(current_question["correct_answers"])
+
+    # Check if the answer is correct based on match_type.
+    if current_question.get("match_type") == "any":
+        is_correct = any(option in correct_answers for option in selected_normalized)
+    else:
+        is_correct = selected_normalized == correct_answers
+
+    if is_correct:
+        session["quiz_score"] = session.get("quiz_score", 0) + 1
+
+    quiz_answers = session.get("quiz_answers", [])
+    quiz_answers.append(
+        {
+            "question": current_question["question"],
+            "selected": selected_normalized,
+            "correct_answers": correct_answers,
+            "is_correct": is_correct,
+        }
+    )
+    session["quiz_answers"] = quiz_answers
+    session["quiz_progress"] = progress + 1
+
+    # Check if quiz is finished.
+    if progress + 1 >= len(questions):
+        result = calculate_result()
+        result = persist_result(result)
+        result = enrich_result_with_ranking(result)
+        session["latest_result"] = result
+        session["quiz_finished"] = True
+        flash("Quiz completed!", "success")
+        return redirect(url_for("results"))
+
+    # Move to next question.
+    return redirect(url_for("quiz_question"))
 
 
 @app.route("/results")
@@ -461,302 +488,6 @@ def leaderboard():
         top_scores=top_scores,
         best_user_rank=best_user_rank,
     )
-
-
-@app.route("/api/quiz/start", methods=["POST"])
-@login_required
-def api_quiz_start():
-    # Start a new quiz session from the browser.
-    payload = request.get_json(silent=True) or {}
-    challenge_mode = payload.get("challenge_mode", "standard")
-    time_limit_seconds = payload.get("time_limit_seconds", 20)
-
-    # Validate mode and timer settings before creating a session.
-    if challenge_mode not in {"standard", "timed"}:
-        return jsonify({"error": "challenge_mode must be 'standard' or 'timed'."}), 400
-    if challenge_mode == "timed":
-        if not isinstance(time_limit_seconds, int) or time_limit_seconds < 5 or time_limit_seconds > 120:
-            return jsonify({"error": "time_limit_seconds must be an integer between 5 and 120."}), 400
-
-    try:
-        initialize_quiz_session_with_mode(challenge_mode, time_limit_seconds)
-        question = current_question_payload()
-    except ValueError as exc:
-        return jsonify({"error": f"Failed to load questions: {exc}"}), 500
-
-    return jsonify(
-        {
-            "message": "Quiz started.",
-            "question": question,
-            "score": session.get("quiz_score", 0),
-            "challenge_mode": challenge_mode,
-            "time_limit_seconds": session.get("time_limit_seconds", 0),
-        }
-    )
-
-
-@app.route("/api/quiz/question", methods=["GET"])
-@login_required
-def api_quiz_question():
-    # Return the current question if a quiz is active.
-    question = current_question_payload()
-    if not question:
-        return jsonify({"error": "Quiz session not started or already complete."}), 404
-    return jsonify({"question": question, "score": session.get("quiz_score", 0)})
-
-
-@app.route("/api/quiz/answer", methods=["POST"])
-@login_required
-def api_quiz_answer():
-    # Check the selected answer and move to the next question.
-    questions = session.get("quiz_questions", [])
-    progress = session.get("quiz_progress", 0)
-
-    if not questions or progress >= len(questions):
-        return jsonify({"error": "Quiz is not active. Start a new quiz."}), 400
-
-    # If timed mode has already expired, end the quiz right away.
-    if session.get("challenge_mode") == "timed" and remaining_question_seconds() <= 0:
-        session["ended_by_timeout"] = True
-        current_question = questions[progress]
-        quiz_answers = session.get("quiz_answers", [])
-        quiz_answers.append(
-            {
-                "question": current_question["question"],
-                "selected": [],
-                "correct_answers": sorted(current_question["correct_answers"]),
-                "is_correct": False,
-            }
-        )
-        session["quiz_answers"] = quiz_answers
-        session["quiz_progress"] = len(questions)
-        result = calculate_result()
-        result = persist_result(result)
-        result = enrich_result_with_ranking(result)
-        session["latest_result"] = result
-        session["quiz_finished"] = True
-        return jsonify(
-            {
-                "completed": True,
-                "timed_out": True,
-                "feedback": "Time is up. Quiz ended.",
-                "score": session.get("quiz_score", 0),
-                "result": result,
-                "redirect_url": url_for("results"),
-            }
-        )
-
-    payload = request.get_json(silent=True) or {}
-    selected = payload.get("answers")
-    # The browser must send answers as a list like ["a", "c"].
-    if not isinstance(selected, list):
-        return jsonify({"error": "answers must be a list."}), 400
-
-    selected_normalized = sorted({str(option).lower().strip() for option in selected if option})
-    current_question = questions[progress]
-    valid_keys = sorted(current_question["options"].keys())
-
-    if not selected_normalized:
-        return jsonify({"error": "Please select at least one option."}), 400
-    if any(option not in valid_keys for option in selected_normalized):
-        return jsonify({"error": "Submitted option is invalid."}), 400
-
-    # Handle "any" match type or exact full-match answers.
-    correct_answers = sorted(current_question["correct_answers"])
-    if current_question.get("match_type") == "any":
-        is_correct = any(option in correct_answers for option in selected_normalized)
-    else:
-        is_correct = selected_normalized == correct_answers
-
-    if is_correct:
-        session["quiz_score"] = session.get("quiz_score", 0) + 1
-
-    quiz_answers = session.get("quiz_answers", [])
-    quiz_answers.append(
-        {
-            "question": current_question["question"],
-            "selected": selected_normalized,
-            "correct_answers": correct_answers,
-            "is_correct": is_correct,
-        }
-    )
-    session["quiz_answers"] = quiz_answers
-    session["quiz_progress"] = progress + 1
-    session["question_started_at"] = time.time()
-
-    next_question = current_question_payload()
-    if next_question:
-        # Return the next question without ending the quiz yet.
-        return jsonify(
-            {
-                "is_correct": is_correct,
-                "feedback": "Correct!" if is_correct else "Incorrect.",
-                "score": session.get("quiz_score", 0),
-                "next_question": next_question,
-                "completed": False,
-            }
-        )
-
-    result = calculate_result()
-    result = persist_result(result)
-    result = enrich_result_with_ranking(result)
-    session["latest_result"] = result
-    session["quiz_finished"] = True
-
-    # Quiz is complete, so return final data and redirect target.
-
-    return jsonify(
-        {
-            "is_correct": is_correct,
-            "feedback": "Correct!" if is_correct else "Incorrect.",
-            "score": session.get("quiz_score", 0),
-            "completed": True,
-            "result": result,
-            "redirect_url": url_for("results"),
-        }
-    )
-
-
-@app.route("/api/quiz/timeout", methods=["POST"])
-@login_required
-def api_quiz_timeout():
-    # End the quiz immediately when the timer runs out.
-    questions = session.get("quiz_questions", [])
-    progress = session.get("quiz_progress", 0)
-
-    if not questions or progress >= len(questions):
-        return jsonify({"error": "Quiz is not active. Start a new quiz."}), 400
-    if session.get("challenge_mode") != "timed":
-        return jsonify({"error": "Timeout endpoint is only available in timed mode."}), 400
-
-    # Record the timed-out question as incorrect before finalizing.
-    session["ended_by_timeout"] = True
-    current_question = questions[progress]
-    quiz_answers = session.get("quiz_answers", [])
-    quiz_answers.append(
-        {
-            "question": current_question["question"],
-            "selected": [],
-            "correct_answers": sorted(current_question["correct_answers"]),
-            "is_correct": False,
-        }
-    )
-    session["quiz_answers"] = quiz_answers
-    session["quiz_progress"] = len(questions)
-
-    result = calculate_result()
-    result = persist_result(result)
-    result = enrich_result_with_ranking(result)
-    session["latest_result"] = result
-    session["quiz_finished"] = True
-
-    return jsonify(
-        {
-            "completed": True,
-            "timed_out": True,
-            "feedback": "Time is up. Quiz ended.",
-            "score": session.get("quiz_score", 0),
-            "result": result,
-            "redirect_url": url_for("results"),
-        }
-    )
-
-
-@app.route("/api/quiz/display-name", methods=["POST"])
-@login_required
-def api_quiz_display_name():
-    # Save the name the user wants to show on the leaderboard.
-    result = session.get("latest_result")
-    if not result:
-        return jsonify({"error": "No quiz result is available yet."}), 400
-
-    payload = request.get_json(silent=True) or {}
-    display_name = payload.get("display_name", "")
-
-    if display_name:
-        # Validate custom leaderboard names.
-        name_error = validate_display_name(display_name)
-        if name_error:
-            return jsonify({"error": name_error}), 400
-    else:
-        display_name = session.get("username", "guest")
-
-    result["display_name"] = display_name.strip()
-    session["display_name"] = result["display_name"]
-
-    scores = load_json(SCORES_FILE, [])
-    if isinstance(scores, list):
-        # Update the exact stored score row that matches this result.
-        updated = False
-        for idx, row in enumerate(scores):
-            if (
-                row.get("submitted_at") == result.get("submitted_at")
-                and row.get("username") == result.get("username")
-                and row.get("score") == result.get("score")
-                and row.get("time_taken_seconds") == result.get("time_taken_seconds")
-            ):
-                scores[idx]["display_name"] = result["display_name"]
-                updated = True
-                break
-        if updated:
-            save_json(SCORES_FILE, scores)
-
-    result = enrich_result_with_ranking(result)
-    session["latest_result"] = result
-
-    return jsonify({"message": "Name saved.", "result": result})
-
-
-@app.route("/api/scores", methods=["GET", "POST"])
-@login_required
-def api_scores():
-    # Let the browser read or save score history.
-    if request.method == "GET":
-        # Return ranked results plus a quick top-10 slice.
-        scores = load_json(SCORES_FILE, [])
-        ranked_scores = compute_rankings(scores if isinstance(scores, list) else [])
-        top_10 = ranked_scores[:10]
-        my_rank = None
-        username = session.get("username")
-        for row in ranked_scores:
-            if row.get("username") == username:
-                my_rank = row.get("rank")
-                break
-        return jsonify({"scores": ranked_scores, "top_10": top_10, "my_rank": my_rank})
-
-    payload = request.get_json(silent=True) or {}
-    username = payload.get("username", "").strip()
-    score = payload.get("score")
-    total_questions = payload.get("total_questions")
-    time_taken = payload.get("time_taken_seconds")
-
-    if not username:
-        return jsonify({"error": "username is required."}), 400
-    if not isinstance(score, int) or score < 0:
-        return jsonify({"error": "score must be a non-negative integer."}), 400
-    if not isinstance(total_questions, int) or total_questions <= 0:
-        return jsonify({"error": "total_questions must be a positive integer."}), 400
-    if not isinstance(time_taken, (int, float)) or time_taken < 0:
-        return jsonify({"error": "time_taken_seconds must be non-negative."}), 400
-
-    # Build a score record from request data and save it.
-    result = {
-        "username": username,
-        "display_name": payload.get("display_name", username),
-        "score": score,
-        "total_questions": total_questions,
-        "correct": score,
-        "incorrect": max(total_questions - score, 0),
-        "time_taken_seconds": round(float(time_taken), 2),
-        "areas_for_improvement": payload.get("areas_for_improvement", []),
-        "challenge_mode": payload.get("challenge_mode", "standard"),
-        "time_limit_seconds": payload.get("time_limit_seconds", 0),
-        "ended_by_timeout": bool(payload.get("ended_by_timeout", False)),
-        "submitted_at": datetime.now(timezone.utc).isoformat(),
-    }
-
-    persisted = persist_result(result)
-    return jsonify({"message": "Score saved.", "result": persisted}), 201
 
 
 @app.errorhandler(404)

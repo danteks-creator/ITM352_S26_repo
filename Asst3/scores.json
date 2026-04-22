@@ -2,35 +2,20 @@
   {
     "username": "danteks",
     "display_name": "danteks",
-    "score": 5,
+    "score": 1,
     "total_questions": 5,
-    "correct": 5,
-    "incorrect": 0,
-    "time_taken_seconds": 28.34,
-    "areas_for_improvement": [],
-    "challenge_mode": "timed",
-    "time_limit_seconds": 20,
-    "ended_by_timeout": false,
-    "submitted_at": "2026-04-20T22:01:49.820717+00:00"
-  },
-  {
-    "username": "danteks",
-    "display_name": "bob jeffery",
-    "score": 0,
-    "total_questions": 5,
-    "correct": 0,
-    "incorrect": 5,
-    "time_taken_seconds": 21.25,
+    "correct": 1,
+    "incorrect": 4,
+    "time_taken_seconds": 17.3,
     "areas_for_improvement": [
-      "Who is the viral social media influencer and streamer known for laughing at someone's mom being homeless?",
-      "In the hit song 'We Bring the BOOM', what location do the singers A.J. and Big Justice say they are bringing the boom from?",
-      "Does the honeybee defy all laws of aviation and logic by being able to fly?",
-      "Why does the author of this quiz hate birds?",
-      "Which numbers are a multiple of 1?"
+      "Which of these are primary colors?",
+      "What is the capital of France?",
+      "What is the largest planet in our solar system?",
+      "Which of these are programming languages?"
     ],
     "challenge_mode": "standard",
     "time_limit_seconds": 0,
     "ended_by_timeout": false,
-    "submitted_at": "2026-04-21T22:42:55.039458+00:00"
+    "submitted_at": "2026-04-22T08:14:43.410991+00:00"
   }
 ]

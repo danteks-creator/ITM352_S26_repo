@@ -1,31 +1,44 @@
 {% extends 'base.html' %}
 {% block title %}Leaderboard{% endblock %}
 {% block content %}
-<!-- Leaderboard page shows the top global scores and user rank. -->
-<section class="result-card reveal-in">
-  <p class="eyebrow">Global Rankings</p>
-  <h1>Top 10 Quiz Scores</h1>
-  {% if best_user_rank %}
-  <div class="flash flash-success">Your best ranking: #{{ best_user_rank }}</div>
-  {% else %}
-  <p class="muted">Complete a quiz to appear on the leaderboard.</p>
-  {% endif %}
+<h1>Leaderboard</h1>
 
-  <div class="leaderboard">
-    <!-- Each row is one saved quiz attempt from scores.json. -->
-    {% for row in top_scores %}
-    <div class="leaderboard-row">
-      <span>#{{ row.rank }} {{ row.display_name or row.username }}</span>
-      <span>
-        {{ row.score }} / {{ row.total_questions }}
-        {% if row.challenge_mode == 'timed' %}
-          | timed ({{ row.time_limit_seconds }}s)
-        {% else %}
-          | standard
-        {% endif %}
-      </span>
-    </div>
-    {% endfor %}
-  </div>
-</section>
+<h2>Top 10 Scores</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Score</th>
+            <th>Correct</th>
+            <th>Time (seconds)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score in top_scores %}
+            <tr>
+                <td><strong>#{{ score.rank }}</strong></td>
+                <td>{{ score.display_name }}</td>
+                <td>{{ score.score }}</td>
+                <td>{{ score.correct }} / {{ score.total_questions }}</td>
+                <td>{{ score.time_taken_seconds }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if best_user_rank %}
+<div class="stat" style="border-left-color: #007bff;">
+    <strong>Your Best Rank:</strong> #{{ best_user_rank }}
+</div>
+{% else %}
+<div class="stat" style="border-left-color: #6c757d;">
+    <strong>You haven't taken a quiz yet.</strong>
+</div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('quiz') }}" class="btn btn-primary">Start Quiz</a>
+    <a href="{{ url_for('home') }}" class="btn btn-secondary">Home</a>
+</div>
 {% endblock %}

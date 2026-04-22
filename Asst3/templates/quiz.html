@@ -1,45 +1,21 @@
 {% extends 'base.html' %}
-{% block title %}Quiz Session{% endblock %}
+{% block title %}Quiz{% endblock %}
 {% block content %}
-<!-- This page shows the live quiz and the timer-based mode controls. -->
-<section class="quiz-layout reveal-in">
-  <div class="quiz-status-card">
-    <!-- These buttons let the user choose standard or timed mode. -->
-    <div class="mode-controls" id="modeControls">
-      <button class="btn btn-secondary" id="startStandardBtn" type="button">Start Standard Mode</button>
-      <div class="timed-controls">
-        <label for="timerSelect">Seconds per question</label>
-        <select id="timerSelect">
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20" selected>20</option>
-          <option value="30">30</option>
-        </select>
-        <button class="btn btn-primary" id="startTimedBtn" type="button">Start Timed Mode</button>
-      </div>
-    </div>
-    <p id="progressText" class="muted">Question 0 / 0</p>
-    <p id="modeText" class="muted">Mode: not started</p>
-    <!-- The timer pill updates every second in timed mode. -->
-    <p id="timerText" class="timer-pill hidden">Time left: --s</p>
-    <h2 id="questionText">Loading question...</h2>
-    <form id="quizForm">
-      <fieldset id="optionsFieldset" class="option-grid"></fieldset>
-      <div class="action-row">
-        <button id="submitAnswer" class="btn btn-primary" type="submit">Submit Answer</button>
-      </div>
-    </form>
-  </div>
+<h1>Quiz</h1>
+<p>Click the button below to start a new quiz session. You will answer all questions one at a time.</p>
 
-  <aside class="score-card">
-    <h3>Live Score</h3>
-    <p id="scoreValue" class="score-value">0</p>
-    <p class="muted">Each correct answer gives +1 point.</p>
-    <div id="feedbackBox" class="feedback hidden"></div>
-  </aside>
-</section>
-{% endblock %}
+<form method="POST" action="{{ url_for('quiz') }}">
+    <button type="submit" class="btn btn-primary">Start Quiz</button>
+</form>
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+<div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 4px;">
+    <h3>How it works:</h3>
+    <ul>
+        <li>Questions are shuffled randomly each session</li>
+        <li>Answer choices are shuffled for each question</li>
+        <li>You get 1 point for each correct answer</li>
+        <li>Your score and performance are saved after the quiz</li>
+        <li>View your results and compare on the leaderboard</li>
+    </ul>
+</div>
 {% endblock %}

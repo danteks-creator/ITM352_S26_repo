@@ -1,12 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Error{% endblock %}
 {% block content %}
-<!-- Simple fallback page used for 404/500 errors. -->
-<section class="form-card reveal-in">
-  <h1>Oops</h1>
-  <p>{{ message }}</p>
-  <div class="action-row">
-    <a class="btn btn-primary" href="{{ url_for('home') }}">Go Home</a>
-  </div>
-</section>
+<h1>Error</h1>
+<p>{{ message }}</p>
+<a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
 {% endblock %}

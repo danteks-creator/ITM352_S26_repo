@@ -1,19 +1,21 @@
 {% extends 'base.html' %}
 {% block title %}Login{% endblock %}
 {% block content %}
-<!-- Login page posts credentials to the Flask login route. -->
-<section class="form-card reveal-in">
-  <h1>Login</h1>
-  <p class="muted">Sign in to start a quiz session.</p>
-  <form method="post" novalidate>
-    <!-- Username and password are validated in server-side Python. -->
-    <label for="username">Username</label>
-    <input id="username" name="username" type="text" required maxlength="20" value="{{ username or '' }}">
+<h1>Login</h1>
 
-    <label for="password">Password</label>
-    <input id="password" name="password" type="password" required>
+<form method="POST" action="{{ url_for('login') }}">
+    <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" value="{{ request.form.get('username', '') }}" required>
+    </div>
 
-    <button class="btn btn-primary" type="submit">Login</button>
-  </form>
-</section>
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+<p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a>.</p>
 {% endblock %}
