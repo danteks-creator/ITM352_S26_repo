@@ -12,5 +12,25 @@
     "time_limit_seconds": 20,
     "ended_by_timeout": false,
     "submitted_at": "2026-04-20T22:01:49.820717+00:00"
+  },
+  {
+    "username": "danteks",
+    "display_name": "bob jeffery",
+    "score": 0,
+    "total_questions": 5,
+    "correct": 0,
+    "incorrect": 5,
+    "time_taken_seconds": 21.25,
+    "areas_for_improvement": [
+      "Who is the viral social media influencer and streamer known for laughing at someone's mom being homeless?",
+      "In the hit song 'We Bring the BOOM', what location do the singers A.J. and Big Justice say they are bringing the boom from?",
+      "Does the honeybee defy all laws of aviation and logic by being able to fly?",
+      "Why does the author of this quiz hate birds?",
+      "Which numbers are a multiple of 1?"
+    ],
+    "challenge_mode": "standard",
+    "time_limit_seconds": 0,
+    "ended_by_timeout": false,
+    "submitted_at": "2026-04-21T22:42:55.039458+00:00"
   }
 ]
