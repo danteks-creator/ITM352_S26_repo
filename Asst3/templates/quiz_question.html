@@ -4,10 +4,10 @@
 <div class="question-number">Question {{ question.question_number }} of {{ question.total_questions }}</div>
 {% if question.challenge_mode == 'timed' %}
 <p style="margin-top: 8px; color: #b45309; font-weight: bold;">
-    Timed Mode: 60 seconds per question
+    Timed Mode: 60 seconds for the whole quiz
 </p>
 <p style="margin-top: 4px; color: #b45309;">
-    Time left when page loaded: {{ question.time_left_seconds }} seconds
+    Time left: <span id="quizTimer">{{ question.time_left_seconds }}</span> seconds
 </p>
 {% else %}
 <p style="margin-top: 8px; color: #555;">Standard Mode</p>
@@ -41,4 +41,30 @@
 <div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 4px;">
     <p><strong>Tip:</strong> Use checkboxes to select your answers. You can select multiple answers if needed.</p>
 </div>
+
+{% if question.challenge_mode == 'timed' %}
+<script>
+    (function () {
+        let remaining = Math.max(0, Math.ceil(Number({{ question.time_left_seconds|tojson }})));
+        const timerEl = document.getElementById("quizTimer");
+
+        function render() {
+            if (timerEl) {
+                timerEl.textContent = String(remaining);
+            }
+        }
+
+        render();
+        const intervalId = setInterval(function () {
+            remaining -= 1;
+            if (remaining <= 0) {
+                clearInterval(intervalId);
+                window.location.href = {{ url_for('quiz_question')|tojson }};
+                return;
+            }
+            render();
+        }, 1000);
+    })();
+</script>
+{% endif %}
 {% endblock %}

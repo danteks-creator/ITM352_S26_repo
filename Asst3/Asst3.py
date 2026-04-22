@@ -157,7 +157,6 @@ def initialize_quiz_session() -> None:
     session["quiz_score"] = 0
     session["quiz_answers"] = []
     session["quiz_start_time"] = time.time()
-    session["question_started_at"] = time.time()
     session["quiz_finished"] = False
     session["challenge_mode"] = "standard"
     session["time_limit_seconds"] = 0
@@ -171,11 +170,11 @@ def initialize_quiz_session_with_mode(challenge_mode: str) -> None:
     session["time_limit_seconds"] = 60 if challenge_mode == "timed" else 0
 
 
-def remaining_question_seconds() -> float:
-    # Calculate how much time is left for the current timed question.
+def remaining_quiz_seconds() -> float:
+    # Calculate how much time is left for the full timed quiz.
     if session.get("challenge_mode") != "timed":
         return 0
-    started_at = session.get("question_started_at", time.time())
+    started_at = session.get("quiz_start_time", time.time())
     limit = session.get("time_limit_seconds", 0)
     return max(float(limit) - (time.time() - float(started_at)), 0.0)
 
@@ -209,7 +208,7 @@ def current_question_payload():
         "total_questions": len(questions),
         "challenge_mode": session.get("challenge_mode", "standard"),
         "time_limit_seconds": session.get("time_limit_seconds", 0),
-        "time_left_seconds": round(remaining_question_seconds(), 2),
+        "time_left_seconds": round(remaining_quiz_seconds(), 2),
     }
 
 
@@ -439,23 +438,8 @@ def quiz_question():
             flash("Quiz not started. Please start a new quiz.", "error")
             return redirect(url_for("quiz"))
 
-        # End the quiz if the timed question has already expired.
-        if session.get("challenge_mode") == "timed" and remaining_question_seconds() <= 0:
-            questions = session.get("quiz_questions", [])
-            progress = session.get("quiz_progress", 0)
-            if questions and progress < len(questions):
-                current_question = questions[progress]
-                quiz_answers = session.get("quiz_answers", [])
-                quiz_answers.append(
-                    {
-                        "question": current_question["question"],
-                        "selected": [],
-                        "correct_answers": sorted(current_question["correct_answers"]),
-                        "is_correct": False,
-                    }
-                )
-                session["quiz_answers"] = quiz_answers
-                session["quiz_progress"] = len(questions)
+        # End the quiz if the timed quiz has already expired.
+        if session.get("challenge_mode") == "timed" and remaining_quiz_seconds() <= 0:
             finalize_quiz(ended_by_timeout=True)
             flash("Time is up. Quiz ended.", "error")
             return redirect(url_for("results"))
@@ -470,20 +454,8 @@ def quiz_question():
         flash("Quiz already completed.", "error")
         return redirect(url_for("results"))
 
-    # In timed mode, stop the quiz if the current question expired.
-    if session.get("challenge_mode") == "timed" and remaining_question_seconds() <= 0:
-        current_question = questions[progress]
-        quiz_answers = session.get("quiz_answers", [])
-        quiz_answers.append(
-            {
-                "question": current_question["question"],
-                "selected": [],
-                "correct_answers": sorted(current_question["correct_answers"]),
-                "is_correct": False,
-            }
-        )
-        session["quiz_answers"] = quiz_answers
-        session["quiz_progress"] = len(questions)
+    # In timed mode, stop the quiz if the full quiz timer has expired.
+    if session.get("challenge_mode") == "timed" and remaining_quiz_seconds() <= 0:
         finalize_quiz(ended_by_timeout=True)
         flash("Time is up. Quiz ended.", "error")
         return redirect(url_for("results"))
@@ -515,7 +487,6 @@ def quiz_question():
     )
     session["quiz_answers"] = quiz_answers
     session["quiz_progress"] = progress + 1
-    session["question_started_at"] = time.time()
 
     # Check if quiz is finished.
     if progress + 1 >= len(questions):
