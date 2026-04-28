@@ -10,22 +10,26 @@
             <strong>Your key will be securely encrypted</strong> using Fernet cryptography before it is saved to the database.
         </p>
         
-        <div style="margin: 1.5rem 0; padding: 1rem; border-radius: 4px; background-color: {{ '#d4edda' if has_api_key else '#f8d7da' }}; border: 1px solid {{ '#c3e6cb' if has_api_key else '#f5c6cb' }};">
+        <div style="margin: 1.5rem 0; padding: 1rem; border-radius: 4px; background-color: {{ '#d4edda' if has_api_secret else '#f8d7da' }}; border: 1px solid {{ '#c3e6cb' if has_api_secret else '#f5c6cb' }};">
             <strong>Status:</strong> 
-            {% if has_api_key %}
-                <span style="color: #155724;">✅ API Key is securely configured.</span>
+            {% if has_api_secret %}
+                <span style="color: #155724;">✅ API Credentials are securely configured.</span>
             {% else %}
-                <span style="color: #721c24;">❌ No API Key configured.</span>
+                <span style="color: #721c24;">❌ No API Credentials configured.</span>
             {% endif %}
         </div>
 
         <form method="POST" action="{{ url_for('settings') }}">
             <div class="form-group">
+                <label for="api_key">Binance Testnet Public API Key:</label>
+                <input type="text" id="api_key" name="api_key" value="{{ api_key or '' }}" placeholder="Enter your public API key">
+            </div>
+            <div class="form-group">
                 <label for="api_secret">Exchange API Secret Key:</label>
-                <input type="password" id="api_secret" name="api_secret" placeholder="Enter your secret key here..." required>
+                <input type="password" id="api_secret" name="api_secret" placeholder="Enter your secret key here...">
                 <small style="color: #888; display: block; margin-top: 0.5rem;">For security reasons, we will never display your saved key.</small>
             </div>
-            <button type="submit" style="background-color: #28a745;">{% if has_api_key %}Update{% else %}Save{% endif %} Encrypted Key</button>
+            <button type="submit" style="background-color: #28a745;">{% if has_api_secret %}Update{% else %}Save{% endif %} Credentials</button>
         </form>
     </div>
 {% endblock %}

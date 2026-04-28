@@ -19,6 +19,7 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     # Preparing for Sprint 8 (Auto Trading / Encryption)
+    api_key = db.Column(db.String(256), nullable=True)
     encrypted_api_secret = db.Column(db.String(256), nullable=True)
     
     # Relationship to track user's portfolio/watchlist

@@ -22,12 +22,11 @@ def index():
     
     # Load alerts for the user
     alerts = []
-    alerts_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'alerts.json')
+    alerts_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'alerts_{user_id}.json')
     if os.path.exists(alerts_file):
         with open(alerts_file, 'r') as f:
             try:
-                all_alerts = json.load(f)
-                alerts = [a for a in all_alerts if a['user_id'] == user_id]
+                alerts = json.load(f)
             except json.JSONDecodeError:
                 pass
 
@@ -198,18 +197,24 @@ def settings():
     user = User.query.get(session['user_id'])
     
     if request.method == 'POST':
+        api_key = request.form.get('api_key', '').strip()
         api_secret = request.form.get('api_secret', '').strip()
-        if api_secret:
-            # Encrypt the API key using military-grade Fernet encryption before saving
-            user.encrypted_api_secret = encrypt_data(api_secret)
+        
+        if api_key or api_secret:
+            if api_key:
+                user.api_key = api_key
+            if api_secret:
+                # Encrypt the API secret using military-grade Fernet encryption before saving
+                user.encrypted_api_secret = encrypt_data(api_secret)
             db.session.commit()
-            flash('API Key successfully encrypted and saved!', 'success')
+            flash('API credentials successfully saved!', 'success')
         else:
-            flash('API Key cannot be empty.', 'error')
+            flash('No API credentials provided.', 'error')
             
-    # Just pass a boolean flag to the template for security (never send the actual key)
-    has_api_key = bool(user.encrypted_api_secret)
-    return render_template('settings.html', has_api_key=has_api_key)
+    # Just pass a boolean flag to the template for the secret for security
+    has_api_secret = bool(user.encrypted_api_secret)
+    # It is safe to pass the public API Key back to the template
+    return render_template('settings.html', has_api_secret=has_api_secret, api_key=user.api_key)
 
 @app.route('/logout')
 def logout():
